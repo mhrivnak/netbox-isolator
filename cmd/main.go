@@ -28,6 +28,7 @@ func main() {
 	h := handlers.New(c)
 
 	http.HandleFunc("/api/devices/", h.Device)
+	http.HandleFunc("/status", handlers.Status)
 	fmt.Println("Listening on port 8080")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
