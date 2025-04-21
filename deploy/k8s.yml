@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netbox-isolator
+  labels:
+    name: netbox-isolator
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: netbox-isolator
+  template:
+    metadata:
+      labels:
+        app: netbox-isolator
+    spec:
+      containers:
+      - name: netbox-isolator
+        image: quay.io/mhrivnak/netbox-isolator:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        env:
+        - name: NETBOX_URL
+          value: "http://my-release-netbox.default.svc.cluster.local"
+        - name: NETBOX_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: my-release-netbox-superuser
+              key: api_token
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbox-isolator
+spec:
+  selector:
+    app: netbox-isolator
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
